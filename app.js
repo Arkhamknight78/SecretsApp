@@ -33,10 +33,10 @@ app.use(session({
     saveUninitialized:false
 }));
 
-app.use(passport.initialize());
-app.use(passport.session());
+app.use(passport.initialize()); //initialize passport package and use it to manage our sessions 
+app.use(passport.session());//use passport to deal with our sessions 
  
-mongoose.connect("mongodb+srv://AK78:Vinayak8158@cluster0.euxh9ex.mongodb.net/userDB");
+mongoose.connect(process.env.MONGODB_URI);
 
 const userSchema=new mongoose.Schema({
     email:String,
@@ -51,34 +51,35 @@ userSchema.plugin(FindOrCreate);
 // userSchema.plugin(encrypt, {secret:process.env.SECRET, encryptedFields:["password"] });
 const User=mongoose.model("user",userSchema);
 
-passport.use(User.createStrategy());
+passport.use(User.createStrategy());//create local login strategy using passport-local-mongoose ie. using user specified username and password
+
 // passport.serializeUser(User.serializeUser()); //stuffs data inside cookie
 // passport.deserializeUser(User.deserializeUser()); //destroys cookie after 
-passport.serializeUser(function(user, cb) {
+passport.serializeUser(function(user, cb) { //stuffs data inside cookie 
     process.nextTick(function() {
       cb(null, { id: user.id, username: user.username, name: user.name });
     });
   });
   
-  passport.deserializeUser(function(user, cb) {
+  passport.deserializeUser(function(user, cb) { //destroys cookie after 
     process.nextTick(function() {
       return cb(null, user);
     });
   });
-passport.use(new GoogleStrategy({
-    clientID:process.env.GCLIENT_ID,
-    clientSecret:process.env.GCLIENT_SECRET,
-    callbackURL: "http://localhost:3000/auth/google/secrets",
-    scope:['profile'],
-    state:true
+passport.use(new GoogleStrategy({ //create google login strategy using passport-google-oauth20 
+    clientID:process.env.GCLIENT_ID, //client id and secret are provided by google
+    clientSecret:process.env.GCLIENT_SECRET,  //client id and secret are provided by google
+    callbackURL: "http://localhost:3000/auth/google/secrets", //callback url is the url where google will redirect the user after authentication
+    scope:['profile'], //scope is the information that we want to access from the user's google account
+    state:true //state is used to prevent cross-site request forgery attacks 
   },
-  function(accessToken, refreshToken, profile, cb) {
-    User.findOrCreate({ googleId: profile.id }, function (err, user) {
-      return cb(err, user);
+  function(accessToken, refreshToken, profile, cb) { // this function is called when the user is authenticated by google
+    User.findOrCreate({ googleId: profile.id }, function (err, user) { //findOrCreate is a function provided by mongoose-findorcreate package used to find or create a new user in the database
+      return cb(err, user); //cb is a callback function that is called after the user is authenticated by google and the user is found or created in the database 
     });
   }
 ));
-passport.use(new GitHubStrategy({
+passport.use(new GitHubStrategy({ //create github login strategy using passport-github 
     clientID: process.env.GITCLIENT_ID,
     clientSecret: process.env.GITCLIENT_SECRET,
     callbackURL: "http://127.0.0.1:3000/auth/github/secrets"
@@ -92,14 +93,14 @@ passport.use(new GitHubStrategy({
 ));
 
 app.post("/register",function(req,res){
-    app.post("/register", function(req, res) {
-        User.register({ username: req.body.username }, req.body.password, function(err, user) {
+    app.post("/register", function(req, res) { //register route for registering a new user 
+        User.register({ username: req.body.username }, req.body.password, function(err, user) { //register is a function provided by passport-local-mongoose package used to register a new user in the database
           if (err) {
             console.log(err);
-            res.redirect("/register");
+            res.redirect("/register"); //redirect to register page if there is an error
           } else {
             passport.authenticate("local")(req, res, function() {
-              res.redirect("/secrets");
+              res.redirect("/secrets"); //redirect to secrets page if the user is successfully registered
             });
           }
         });
@@ -123,8 +124,8 @@ app.post("/register",function(req,res){
     
 });
 
-app.post("/login",function(req,res){
-    const user=new User({
+app.post("/login",function(req,res){ //login route for logging in an existing user
+    const user=new User({ //create a new user object using the username and password provided by the user
       username:req.body.username,
       password:req.body.password
 
@@ -144,7 +145,7 @@ app.post("/login",function(req,res){
             });
         
         }
-    });
+    }); //login is a function provided by passport-local-mongoose package used to login an existing user
     
     // const Username= req.body.username;
     // const Password= req.body.password;
@@ -169,11 +170,11 @@ app.post("/login",function(req,res){
 app.get("/",function(req,res){
     res.render("home");
 });
-app.get("/auth/google",
-passport.authenticate('google',{scope:["profile"]}) 
+app.get("/auth/google", //google login route 
+passport.authenticate('google',{scope:["profile"]})  //scope is the information that we want to access from the user's google account 
 );
-app.get("/auth/google/secrets",
-passport.authenticate('google',{failureRedirect:'/login'}),function(req,res){
+app.get("/auth/google/secrets", 
+passport.authenticate('google',{failureRedirect:'/login'}),function(req,res){ //this function is called when the user is authenticated by google
     //successfully logged in
     res.redirect("/secrets");
 }
@@ -184,33 +185,33 @@ app.get('/auth/github',
 app.get('/auth/github/secrets', 
   passport.authenticate('github', { failureRedirect: '/login' }),
   function(req, res) {
-    // Successful authentication, redirect home.
+    // Successful authentication, redirect secrets.
     res.redirect('/secrets');
   });
-app.get("/login",function(req,res){
+app.get("/login",function(req,res){ //login route for logging in an existing user
     res.render("login");
 });
-app.get("/register",function(req,res){
+app.get("/register",function(req,res){ //register route for registering a new user using the register.ejs file 
     res.render("register");
 });
-app.get("/secrets",function(req,res){
+app.get("/secrets",function(req,res){ //secrets route for displaying the secrets page
     User.find({"secret":{$ne:null}}).then(function(usersfound){
         // console.log(usersfound);
-        res.render("secrets",{userWithSecrets:usersfound});
+        res.render("secrets",{userWithSecrets:usersfound}); //render the secrets page and pass the usersfound array to the secrets.ejs file
     }).catch(function(err){
-        console.log(err);
+        console.log(err); 
     });
 });
 app.get("/submit",function(req,res){
     if(req.isAuthenticated()){
-        res.render("submit");
+        res.render("submit"); //render the submit page if the user is authenticated
     }
     else{
-        res.redirect("/login");
+        res.redirect("/login"); //redirect to the login page if the user is not authenticated
     }
 });
 app.post("/submit",function(req, res) {
-    if (!req.isAuthenticated()) {
+    if (!req.isAuthenticated()) { //check if the user is authenticated
         // User is not authenticated, redirect to the login page or handle the error
         res.redirect("/login");
         return;
@@ -225,11 +226,11 @@ app.post("/submit",function(req, res) {
     User.findById(req.user.id).then( function(foundUser) 
     {
         // console.log(foundUser);
-         foundUser.secret = submittedSecret;
-        foundUser.save().then(function() {
+         foundUser.secret = submittedSecret; //add the submitted secret to the user's secret field in the database but only secret is possible in one profile
+        foundUser.save().then(function() { // save the user's secret to the database
           res.redirect("/secrets");
         }).catch(function(err){
-            console.log(err)
+            console.log(err); //handle the error
         });
     
     
@@ -257,6 +258,6 @@ app.get("/logout",function(req,res){
     
 });
 
-app.listen(3000, function(){
+app.listen(process.env.PORT||3000, function(){
     console.log("Server started on port 3000.");
 });
