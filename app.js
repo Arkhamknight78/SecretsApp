@@ -36,7 +36,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
  
-mongoose.connect("mongodb://localhost:27017/userDB");
+mongoose.connect("mongodb+srv://AK78:Vinayak8158@cluster0.euxh9ex.mongodb.net/userDB");
 
 const userSchema=new mongoose.Schema({
     email:String,
@@ -195,7 +195,7 @@ app.get("/register",function(req,res){
 });
 app.get("/secrets",function(req,res){
     User.find({"secret":{$ne:null}}).then(function(usersfound){
-        console.log(usersfound);
+        // console.log(usersfound);
         res.render("secrets",{userWithSecrets:usersfound});
     }).catch(function(err){
         console.log(err);
@@ -224,7 +224,7 @@ app.post("/submit",function(req, res) {
     }
     User.findById(req.user.id).then( function(foundUser) 
     {
-        console.log(foundUser);
+        // console.log(foundUser);
          foundUser.secret = submittedSecret;
         foundUser.save().then(function() {
           res.redirect("/secrets");
