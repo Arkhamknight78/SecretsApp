@@ -6,7 +6,7 @@ const ejs=require("ejs");
 const mongoose=require("mongoose");
 //in this particular chronology
 //1.
-const session = require('express-session')
+const session = require('cookie-session');
 //2.
 const passport=require('passport');
 //3.
