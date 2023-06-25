@@ -10,13 +10,15 @@ const session = require('express-session');
 //2.
 const passport=require('passport');
 //3.
+const bcrypt=require('bcrypt');
+const saltround=10; //more we increase this number harder my computer even to generate the hashes   
+const md5=require('md5');
+
 const passportLocalMongoose=require('passport-local-mongoose');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FindOrCreate=require("mongoose-findorcreate");
 const GitHubStrategy = require('passport-github').Strategy;
-const bcrypt=require('bcrypt');
-const saltround=10; //more we increase this number harder my computer even to generate the hashes   
-const md5=require('md5');
+
 
 const encrypt=require("mongoose-encryption") //using hash function md5 method we can encode the password and store the hash value in the database
 const app = express();
@@ -259,6 +261,6 @@ app.get("/logout",function(req,res){
     
 });
 
-app.listen(process.env.PORT||3000, function(){
-    console.log("Server started on port 3000.");
+app.listen(process.env.PORT||5000, function(){
+    console.log("Server started on port 5000.");
 });
