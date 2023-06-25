@@ -14,11 +14,11 @@ const passportLocalMongoose=require('passport-local-mongoose');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FindOrCreate=require("mongoose-findorcreate");
 const GitHubStrategy = require('passport-github').Strategy;
-// const bcrypt=require('bcrypt');
-//const saltround=10; //more we increase this number harder my computer even to generate the hashes   
-// const md5=require('md5');
+const bcrypt=require('bcrypt');
+const saltround=10; //more we increase this number harder my computer even to generate the hashes   
+const md5=require('md5');
 
-// const encrypt=require("mongoose-encryption") //using hash function md5 method we can encode the password and store the hash value in the database
+const encrypt=require("mongoose-encryption") //using hash function md5 method we can encode the password and store the hash value in the database
 const app = express();
 
 // console.log(process.env.SECRET);
@@ -50,6 +50,7 @@ userSchema.plugin(FindOrCreate);
 
 // userSchema.plugin(encrypt, {secret:process.env.SECRET, encryptedFields:["password"] });
 const User=mongoose.model("user",userSchema);
+//'local'
 
 passport.use(User.createStrategy());//create local login strategy using passport-local-mongoose ie. using user specified username and password
 
@@ -105,22 +106,22 @@ app.post("/register",function(req,res){
           }
         });
       });
-    // bcrypt.hash(req.body.password, saltround).then(function(hash){
-    //     const newUser=new User
-    //     ({
-    //         email:req.body.username,
-    //         password:hash
-    //     });
-    //     newUser.save().then(function()
-    //     {
-    //         res.render("secrets");
-    //     }).catch(function(err){
-    //     console.log(err);
+    bcrypt.hash(req.body.password, saltround).then(function(hash){
+        const newUser=new User
+        ({
+            email:req.body.username,
+            password:hash
+        });
+        newUser.save().then(function()
+        {
+            res.render("secrets");
+        }).catch(function(err){
+        console.log(err);
  
-    // }).catch(function(err){
-    //     console.log(err);
-    // });
-    // });
+    }).catch(function(err){
+        console.log(err);
+    });
+    });
     
 });
 
@@ -147,24 +148,24 @@ app.post("/login",function(req,res){ //login route for logging in an existing us
         }
     }); //login is a function provided by passport-local-mongoose package used to login an existing user
     
-    // const Username= req.body.username;
-    // const Password= req.body.password;
+    const Username= req.body.username;
+    const Password= req.body.password;
 
-    // User.findOne({"email":Username}).then(function(foundUser)
-    // {
-    //     // console.log(foundUser);
-    //    bcrypt.compare(Password, foundUser.password).then(function(result){
-    //     if(result===true){
-    //         res.render("secrets");
-    //     }
-    //     else{
-    //         res.send("<h1 class='centered'>Wrong password, Homie</h1>");
-    //     }
-    //    }).catch(function(err){
-    //    console.log(err);
-    //    });
+    User.findOne({"email":Username}).then(function(foundUser)
+    {
+        // console.log(foundUser);
+       bcrypt.compare(Password, foundUser.password).then(function(result){
+        if(result===true){
+            res.render("secrets");
+        }
+        else{
+            res.send("<h1 class='centered'>Wrong password, Homie</h1>");
+        }
+       }).catch(function(err){
+       console.log(err);
+       });
        
-    // });
+    });
 });
 
 app.get("/",function(req,res){
