@@ -75,7 +75,7 @@ passport.serializeUser(function(user, cb) { //stuffs data inside cookie
 passport.use(new GoogleStrategy({ //create google login strategy using passport-google-oauth20 
     clientID:process.env.GCLIENT_ID, //client id and secret are provided by google
     clientSecret:process.env.GCLIENT_SECRET,  //client id and secret are provided by google
-    callbackURL: "http://localhost:5000/auth/google/secrets", //callback url is the url where google will redirect the user after authentication
+    callbackURL: "https://secretkeepers.onrender.com/auth/google/secrets", //callback url is the url where google will redirect the user after authentication
     scope:['profile'], //scope is the information that we want to access from the user's google account
     state:true //state is used to prevent cross-site request forgery attacks 
   },
@@ -89,7 +89,7 @@ passport.use(new GoogleStrategy({ //create google login strategy using passport-
 passport.use(new GitHubStrategy({ //create github login strategy using passport-github 
     clientID: process.env.GITCLIENT_ID,
     clientSecret: process.env.GITCLIENT_SECRET,
-    callbackURL: "http://127.0.0.1:5000/auth/github/secrets"
+    callbackURL: "https://secretkeepers.onrender.com/auth/github/secrets"
   },
   function(accessToken, refreshToken, profile, cb) 
   {
